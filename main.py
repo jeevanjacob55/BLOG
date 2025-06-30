@@ -270,8 +270,8 @@ def contact():
 def send_email(name, email, phone, message):
     email_message = f"Subject:New Message\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nMessage:{message}"
     with smtplib.SMTP("smtp.gmail.com") as connection:
-        OWN_MAIL = getenv("EMAIL")
-        PASSWORD = getenv("PASSWORD")
+        OWN_MAIL = os.getenv("EMAIL")
+        PASSWORD = os.getenv("PASSWORD")
         connection.starttls()
         connection.login(OWN_MAIL,PASSWORD)
         connection.sendmail(OWN_MAIL, OWN_MAIL, email_message)

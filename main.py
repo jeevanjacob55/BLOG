@@ -19,7 +19,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 ckeditor = CKEditor(app)
-Bootstrap5(app)
+Bootstrap(app)
 
 # TODO: Configure Flask-Login
 login_manager = LoginManager()

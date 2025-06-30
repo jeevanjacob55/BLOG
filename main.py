@@ -23,6 +23,16 @@ Bootstrap5(app)
 # TODO: Configure Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
+gravatar = Gravatar(
+    app,
+    size=100,
+    rating='g',
+    default='retro',
+    force_default=False,
+    force_lower=False,
+    use_ssl=True,
+    base_url=None
+)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -31,6 +41,10 @@ def load_user(user_id):
 @app.context_processor
 def inject_user():
     return dict(logged_in=current_user.is_authenticated)
+
+@app.context_processor
+def inject_gravatar():
+    return dict(gravatar=gravatar)
 
 #Check whether the the logged in user is admin or not
 def admin_only(f):
@@ -65,8 +79,10 @@ class BlogPost(db.Model):
     # Relationship back to User
     author: Mapped["User"] = relationship(back_populates="posts")
     # Relationship back to Comment
-    comments: Mapped[list["Comment"]] = relationship(back_populates="post")
-
+    comments: Mapped[List["Comment"]] = relationship(
+        back_populates="post",
+        cascade="all, delete-orphan"  
+    )
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, Text, ForeignKey
@@ -98,7 +114,7 @@ class User(db.Model,UserMixin):
 
 
 with app.app_context():
-    #db.drop_all()
+    #db.drop_all() #uncomment this for deleting all the database
     db.create_all()
 
 
@@ -159,25 +175,22 @@ def get_all_posts():
 
 
 # TODO: Allow logged-in users to comment on posts
-@app.route("/post/<int:post_id>", methods=['GET', 'POST'])
+@app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
     form = CommentForm()
     requested_post = db.get_or_404(BlogPost, post_id)
 
     if form.validate_on_submit():
-        if current_user.is_authenticated:
-            new_comment = Comment(
-                text=form.comment.data,
-                author=current_user,
-                post=requested_post
-            )
-            db.session.add(new_comment)
-            db.session.commit()
-            flash("Comment Submitted Successfully!")
-            return redirect(url_for('show_post', post_id=post_id))
-        else:
-            flash("You must be logged in to comment.")
-            return redirect(url_for('login'))
+        flash("Comment submitted successfully.")
+        new_comment = Comment(
+            text=form.comment.data,
+            author=current_user,
+            post=requested_post  # link the comment to the post!
+        )
+        db.session.add(new_comment)
+        db.session.commit()
+        
+        return redirect(url_for('show_post', post_id=post_id))
 
     return render_template("post.html", post=requested_post, form=form)
 

@@ -49,12 +49,12 @@
                   {{ render_form(form) }}
                 </form>
                 {% endif %}<!-- TODO: Add a CKEditor for commenting below -->
-                <div class="comment">
+        <div class="comment">
           <ul class="commentList">
             {% for comment in post.comments %}
               <li>
                 <div class="commenterImage">
-                  <img src="{{ url_for('static', filename='assets/img/default-profile.jpg') }}" />
+                 <img src="{{ gravatar(comment.author.email,size = 50) }}" class="rounded-circle">
                 </div>
                 <div class="commentText">
                   <p>{{ comment.text | safe }}</p>

@@ -15,6 +15,7 @@ from typing import List
 import os
 from dotenv import load_dotenv
 load_dotenv()
+import smtplib
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
@@ -255,6 +256,25 @@ def about():
 
 @app.route("/contact")
 def contact():
+    if request.method == 'GET':
+        return render_template('contact.html')  # Show form on GET
+    
+    # Handle form submission on POST
+    name = request.form.get('name')
+    email = request.form.get('email')
+    phone = request.form.get('phone')
+    message = request.form.get('message')
+    send_email(name,email,phone,message)
+    return render_template('form_entry.html')
+
+def send_email(name, email, phone, message):
+    email_message = f"Subject:New Message\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nMessage:{message}"
+    with smtplib.SMTP("smtp.gmail.com") as connection:
+        OWN_MAIL = getenv("EMAIL")
+        PASSWORD = getenv("PASSWORD")
+        connection.starttls()
+        connection.login(OWN_MAIL,PASSWORD)
+        connection.sendmail(OWN_MAIL, OWN_MAIL, email_message)
     return render_template("contact.html")
 
 
